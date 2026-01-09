@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noodle Care – Pet Snake Portal</title>
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #111;
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center;
+        color: #e0e0e0;
+    }
+    nav {				
+        display: flex;
+        justify-content: space-around;
+        background: rgba(26,26,26,0.85);
+        padding: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+    nav a, nav button {
+        color: #e0e0e0;
+        text-decoration: none;
+        padding: 10px 20px;
+        font-weight: bold;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    nav a:hover, nav button:hover, nav a.active-link {
+        background: rgba(80,150,80,0.8);
+        border-radius: 8px;
+    }
+    .container {
+        padding: 30px;
+        max-width: 1200px;
+        margin: auto;
+    }
+    .info-card {
+        background: rgba(0,0,0,0.6);
+        padding: 20px;
+        border-radius: 16px;
+        margin: 20px 0;
+        backdrop-filter: blur(4px);
+    }
+    h1, h2 { text-shadow: 2px 2px 8px rgba(0,0,0,0.8); }
+    img.section-img {
+        max-width: 100%;
+        border-radius: 16px;
+        display: block;
+        margin: 12px auto;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+    }
+    .page {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    }
+    .page.active {
+        display: block;
+        opacity: 1;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td {
+        background: rgba(20,20,20,0.85);
+        border: 1px solid #333;
+        padding: 10px;
+    }
+    button {
+        padding: 8px 14px;
+        cursor: pointer;
+        background: #2c2c2c;
+        border: none;
+        color: white;
+        border-radius: 6px;
+    }
+    button:hover { background: #444; }
+    label { margin-top: 10px; display: block; }
+    .highlight { background-color: rgba(80,200,80,0.3); }
+
+    /* --- Login Page Styles --- */
+    #login-page {
+        position: fixed;
+        top:0; left:0; width:100%; height:100%;
+        background: rgba(0,0,0,0.95);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        flex-direction: column;
+        color: #e0e0e0;
+    }
+    #login-page input {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 6px;
+        border: none;
+        width: 250px;
+    }
+    #backButton {
+        position: fixed; top:20px; left:20px; width:60px; height:60px; cursor:pointer; z-index:1001;
+    }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page">
+    <h1>Noodle Care Login</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="loginError" style="color:red; display:none;"></p>
+
+    <div style="margin-top:15px;">
+        <button onclick="showSignUp()" style="margin-right:10px;">Sign Up</button>
+        <button onclick="forgotPassword()">Forgot Password</button>
+    </div>
+
+    <!-- SIGN UP FORM -->
+    <div id="signup-form" style="display:none; margin-top:20px;">
+    <h2>Sign Up</h2>
+    <input type="text" id="signupUsername" placeholder="New Username">
+    <input type="password" id="signupPassword" placeholder="New Password">
+    <input type="email" id="signupEmail" placeholder="Email Address">
+    <button onclick="signUp()">Create Account</button>
+    <p id="signupError" style="color:green; display:none;"></p>
+    <button onclick="hideSignUp()" style="margin-top:10px;">Cancel</button>
+</div>
+</div>
+
+<!-- BACK BUTTON -->
+<img id="backButton" src="https://cdn-icons-png.flaticon.com/512/616/616487.png" alt="Back to Snake Selection" style="display:none;" onclick="goToSnakeSelection()">
+
+<!-- SNAKE SELECTION -->
+<div id="snake-selection" class="container" style="display:none;">
+  <h1>Choose Your Snake 🐍</h1>
+  <div id="snake-grid" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:center;"></div>
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-bar" style="display:none;">
+    <button onclick="showPage('home')">Home</button>
+    <button onclick="showPage('feeding')">Feeding</button>
+    <button onclick="showPage('growth')">Growth</button>
+    <button onclick="showPage('equipment')">Equipment</button>
+    <button id="logoutBtn" style="display:none; background:#b33;">Log Out</button>
+</nav>
+
+<!-- PAGES -->
+<div id="home" class="page container">
+    <h1>Snake Care Portal 🐍</h1>
+    <div class="info-card">
+        <img class="section-img" src="" alt="Snake">
+        <h2>Feeding Habits</h2>
+        <p id="feedingInfo"></p>
+    </div>
+    <div class="info-card">
+        <h2>Environment & Habitat</h2>
+        <p id="habitatInfo"></p>
+    </div>
+    <div class="info-card">
+        <h2>Temperament</h2>
+        <p id="temperamentInfo"></p>
+    </div>
+    <div class="info-card">
+        <h2>Unique Fact</h2>
+        <p id="factInfo"></p>
+    </div>
+</div>
+
+<div id="feeding" class="page container">
+    <h1>🍖 Feeding Tracker</h1>
+    <div class="info-card">
+        <h2>📊 Feeding Reference (All Snakes)</h2>
+        <table id="feedingGuideTable"></table>
+    </div>
+    <div class="info-card">
+        <h2>🐍 Feeding Habits</h2>
+        <label>Food Type:</label>
+        <select id="foodType" onchange="updateSizeOptions()">
+            <option value="Mouse">🐭 Mouse</option>
+            <option value="Rat">🐀 Rat</option>
+            <option value="Quail">🐥 Quail</option>
+            <option value="Egg">🥚 Egg</option>
+            <option value="Rabbit">🐇 Rabbit</option>
+            <option value="Toad">🐸 Toad</option>
+            <option value="Other">🦎 Other</option>
+        </select>
+        <label>Food Size:</label>
+        <select id="sizeType"></select>
+        <label>Date:</label>
+        <input type="date" id="feedDate">
+        <label>Status:</label>
+        <select id="feedStatus">
+            <option>Fed</option>
+            <option>Refused</option>
+            <option>Regurgitated</option>
+        </select>
+        <label>Notes:</label>
+        <input type="text" id="feedNotes" placeholder="e.g., shed cycle, struck-only, aggressive, etc.">
+        <button onclick="addFeed()">Add Feeding</button>
+    </div>
+    <div class="info-card">
+        <h2>📋 Feeding History</h2>
+        <table id="feedTable">
+            <tr><th>Date</th><th>Type</th><th>Size</th><th>Status</th><th>Notes</th></tr>
+        </table>
+    </div>
+</div>
+
+<div id="growth" class="page container">
+    <h1>📈 Growth Tracking</h1>
+    <div class="info-card">
+        <h2>🐍 Log Weight & Length</h2>
+        <label>Date:</label>
+        <input type="date" id="weightDate">
+        <label>Weight (kg):</label>
+        <input type="number" step="0.01" id="weightInput">
+        <label>Length (cm):</label>
+        <input type="number" step="1" id="lengthInput">
+        <button onclick="addWeight()">Add Entry</button>
+    </div>
+    <div class="info-card">
+        <h2>📊 History & Chart</h2>
+        <canvas id="weightChart" style="background:rgba(0,0,0,0.4);border-radius:16px;"></canvas>
+        <table id="weightTable">
+            <tr><th>Date</th><th>Weight (kg)</th><th>Length (cm)</th></tr>
+        </table>
+    </div>
+</div>
+
+<div id="equipment" class="page container">
+    <h1>🛠️ Equipment Inventory</h1>
+    <div class="info-card">
+        <h2>📦 Add Equipment</h2>
+        <label>Item Name:</label>
+        <input type="text" id="equipInput">
+        <label>Category:</label>
+        <input type="text" id="equipCategory" placeholder="e.g., Heating, Decor, Food">
+        <label>Quantity:</label>
+        <input type="number" id="equipQty" value="1" min="1">
+        <label>Notes:</label>
+        <input type="text" id="equipNotes" placeholder="Optional notes">
+        <label>Wishlist:</label>
+        <input type="checkbox" id="equipWishlist"> Add to Wishlist
+        <button onclick="addEquip()">Add Item</button>
+        <button onclick="clearEquip()">Clear All</button>
+    </div>
+    <div class="info-card">
+        <h2>📋 Inventory</h2>
+        <table id="equipList" style="width:100%; border-collapse: collapse;">
+            <tr>
+                <th>Item</th>
+                <th>Category</th>
+                <th>Qty</th>
+                <th>Notes</th>
+                <th>Wishlist</th>
+                <th>Action</th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// ---------------- LOGIN & SIGNUP ----------------
+function login() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const error = document.getElementById('loginError');
+    error.style.display = "none";
+
+    if(!user || !pass){ error.textContent="Enter username and password"; error.style.display="block"; return; }
+
+    if(user==='admin' && pass==='noodle123'){ showSnakeSelection(); return; }
+
+    const users = JSON.parse(localStorage.getItem('users') || "{}");
+    if(users[user] && users[user]===pass){ showSnakeSelection(); }
+    else { error.textContent="Incorrect username or password"; error.style.display="block"; }
+}
+function showSignUp(){ document.getElementById('signup-form').style.display='block'; }
+function hideSignUp(){ document.getElementById('signup-form').style.display='none'; }
+function signUp() {
+    const user = document.getElementById('signupUsername').value.trim();
+    const pass = document.getElementById('signupPassword').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const error = document.getElementById('signupError');
+    error.style.display="none";
+
+    // Basic validation
+    if(!user || !pass || !email){ 
+        error.textContent="Enter username, password, and email"; 
+        error.style.color="red"; 
+        error.style.display="block"; 
+        return; 
+    }
+
+    // Email regex validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(email)){
+        error.textContent="Enter a valid email address"; 
+        error.style.color="red"; 
+        error.style.display="block"; 
+        return;
+    }
+
+    if(user==="admin"){ 
+        error.textContent="Cannot use admin as username"; 
+        error.style.color="red"; 
+        error.style.display="block"; 
+        return; 
+    }
+
+    const users = JSON.parse(localStorage.getItem('users')||"{}");
+    if(users[user]){ 
+        error.textContent="Username already exists"; 
+        error.style.color="red"; 
+        error.style.display="block"; 
+        return; 
+    }
+
+    // Store user info
+    users[user] = {password: pass, email: email, verified: true}; // Simulate verified
+    localStorage.setItem('users',JSON.stringify(users));
+
+    error.textContent="Sign up successful! Email verified."; 
+    error.style.color="green"; 
+    error.style.display="block";
+
+    document.getElementById('signupUsername').value="";
+    document.getElementById('signupPassword').value="";
+    document.getElementById('signupEmail').value="";
+}
+function forgotPassword(){
+    const user = prompt("Enter your username for password recovery:");
+    if(!user) return;
+    const users = JSON.parse(localStorage.getItem('users') || "{}");
+    if(users[user]) alert("Your password is: " + users[user]);
+    else alert("Username not found.");
+}
+function showSnakeSelection(){
+    document.getElementById('login-page').style.display='none';
+    document.getElementById('snake-selection').style.display='block';
+    document.getElementById('nav-bar').style.display='flex';
+    document.getElementById('logoutBtn').style.display='inline-block';
+    updateBackButton();
+}
+document.getElementById('logoutBtn').onclick = function(){
+    document.getElementById('login-page').style.display='flex';
+    document.getElementById('snake-selection').style.display='none';
+    document.getElementById('nav-bar').style.display='none';
+    document.getElementById('logoutBtn').style.display='none';
+    currentSnake = null;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+};
+
+// ---------------- SNAKES ----------------
+const snakes=[
+  {name:"Ball Python",
+   feeding:"Babies: Pinky mice every 5–7 days. Adolescents: Adult mice / small rats every 7–10 days. Adults: Rats every 10–14 days.",
+   habitat:"Native to West and Central Africa; grasslands, savannas, and forest edges with hides and burrows.",
+   temperament:"Generally very docile, slow-moving, tolerates handling well, shy when young.",
+   fact:"Curls into a tight ball when threatened, hundreds of captive-bred color morphs exist.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTejoXq4TMFu-8qPl7mySFvw77PEf8lrh8uNA&s"
+  },
+  {name:"Boa Constrictor",
+   feeding:"Babies: Mice every 5–7 days. Adolescents: Small rats every 7–10 days. Adults: Larger rats or rabbits every 10–14 days.",
+   habitat:"Central and South America; rainforests, grasslands, and semi-arid areas with climbing branches.",
+   temperament:"Usually calm, intelligent, can recognize keepers, juveniles may be defensive.",
+   fact:"Constriction kills prey; can live 20–30 years in captivity.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB3Wj0_IswKWn6o-ep0Fa0o5cTL3zyiOOoTQ&s"
+  },
+  {name:"Burmese Python",
+   feeding:"Babies: Mice every 5–7 days. Adolescents: Rats every 7–10 days. Adults: Rabbits or large rats every 10–14 days.",
+   habitat:"Southeast Asia; rainforests, marshes, river edges with large humid enclosures.",
+   temperament:"Generally calm, slow-moving, can be aggressive if unaccustomed to handling.",
+   fact:"Among the largest snakes in the world, excellent swimmers.",
+   img:"https://www.evergladescisma.org/wp-content/uploads/2022/09/snake6-768x514.jpg"
+  },
+  {name:"California Kingsnake",
+   feeding:"Babies: Small mice every 5 days. Adolescents: Larger mice or small rats every 7 days. Adults: Adult rats every 10–14 days.",
+   habitat:"Western North America; deserts, woodlands, grasslands with hides.",
+   temperament:"Hardy, adaptable, generally calm; juveniles may be defensive.",
+   fact:"Immune to venom of some snakes; may eat venomous snakes.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEiKfeQsRbMe93dmecqNdg7bwSHY8-z3X61g&s"
+  },
+  {name:"Carpet Python",
+   feeding:"Babies: Mice every 5–7 days. Adolescents: Rats or small birds every 7–10 days. Adults: Larger rodents or birds every 10–14 days.",
+   habitat:"Australia and New Guinea; forests, woodlands, semi-arboreal spaces with climbing opportunities.",
+   temperament:"Typically calm, can be active and exploratory.",
+   fact:"Varies greatly in color and pattern depending on locality.",
+   img:"https://museumsvictoria.com.au/media/12989/vic-carpetpython-large.jpg"
+  },
+  {name:"Children's Python",
+   feeding:"Babies: Mice every 5 days. Adolescents: Mice every 7 days. Adults: Adult mice / small rats every 10 days.",
+   habitat:"Northern and Central Australia; rocky outcrops, dry forests, near water with hides.",
+   temperament:"Extremely calm and manageable, good for beginners.",
+   fact:"One of the smallest pythons, usually under 1.5 meters; nocturnal hunter.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqF7Rxso3W0-C79dKPZM14feyWb-_a5oHogw&s"
+  },
+  {name:"Corn Snake",
+   feeding:"Babies: Mice every 5 days. Adolescents: Larger mice every 7 days. Adults: Rats every 10–14 days.",
+   habitat:"Southeastern United States; fields, forests, overgrown areas, with vertical climbing space.",
+   temperament:"Gentle, easy to handle, rarely aggressive, highly trainable to routine.",
+   fact:"Excellent escape artists, popular beginner snake.",
+   img:"https://www.thesprucepets.com/thmb/6GGMs0w4Xf1nCvNN6UN4Z2yGHOE=/3888x0/filters:no_upscale():strip_icc()/corn-snake-from-the-lower-florida-keys-530475947-588124bc5f9b58bdb3ec9f93.jpg"
+  },
+  {name:"Gopher Snake",
+   feeding:"Babies: Mice every 5–7 days. Adolescents: Mice or small rats every 7–10 days. Adults: Rats every 10–14 days.",
+   habitat:"North America; deserts, grasslands, open forests with burrows.",
+   temperament:"Calm, non-aggressive, juveniles may hiss when threatened.",
+   fact:"Mimics rattlesnakes by hissing and tail-shaking.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQy9A6mVla6yRc0BrDezZxjhVLKf53WOgEFug&s"
+  },
+  {name:"Hognose Snake",
+   feeding:"Babies: Small toads or mice every 5–7 days. Adolescents: Larger mice every 7 days. Adults: Appropriately sized rodents every 10 days.",
+   habitat:"North America; sandy soils, grasslands, scrublands, burrow-friendly substrate.",
+   temperament:"Mild-mannered, rarely bites, famous for playing dead.",
+   fact:"Uses dramatic death-feigning and upturned snout for digging.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRPYBf2p_zizd7L73m88Z0padg0Z0_-dKNXA&s"
+  },
+  {name:"Milk Snake",
+   feeding:"Babies: Mice every 5 days. Adolescents: Larger mice every 7 days. Adults: Rats every 10–14 days.",
+   habitat:"North and Central America; forests, rocky areas, leaf litter with hiding spots.",
+   temperament:"Docile, curious, colorful, good for beginners.",
+   fact:"Mimics venomous coral snakes for protection.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUYzuGxPIiUbvdxmoJc7j1uquCgIxdH_f0pA&s"
+  },
+  {name:"Rainbow Boa",
+   feeding:"Babies: Mice every 5–7 days. Adolescents: Rats or small mammals every 7–10 days. Adults: Rats every 10–14 days.",
+   habitat:"Central and South America; humid rainforest with water dish, semi-arboreal space.",
+   temperament:"Generally calm, shy, enjoys climbing and humid environments.",
+   fact:"Iridescent scales create rainbow-like sheen.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnJrYhP-xdiqjr5R6kln1eA4isbRXVNxDkVw&s"
+  },
+  {name:"Rosy Boa",
+   feeding:"Babies: Mice every 5–7 days. Adolescents: Larger mice every 7–10 days. Adults: Small rats every 10–14 days.",
+   habitat:"Southwestern USA and Mexico; arid desert, rocky hides, warm spots.",
+   temperament:"Docile, slow-moving, rarely bites.",
+   fact:"Slow growers, long-lived; stripes along body give rosy appearance.",
+   img:"https://lazoo.org/wp-content/uploads/2020/02/Boa-Rosy-JP-1-e1684970339110.jpg"
+  },
+  {name:"Sand Boa",
+   feeding:"Babies: Small mice every 5–7 days. Adolescents: Larger mice every 7–10 days. Adults: Rats every 10–14 days.",
+   habitat:"Middle East and Asia; sandy deserts, burrowing substrate.",
+   temperament:"Calm, secretive, rarely bites.",
+   fact:"Spends most of its life hidden under sand; ambush predator.",
+   img:"https://i0.wp.com/talesofscales.home.blog/wp-content/uploads/2019/08/download-7.jpg?fit=1200%2C800&ssl=1"
+  },
+  {name:"Sunbeam Snake",
+   feeding:"Babies: Small mice every 5–7 days. Adolescents: Larger mice every 7–10 days. Adults: Rats every 10–14 days.",
+   habitat:"Southeast Asia; tropical forests, high humidity, hides, moisture-rich soil.",
+   temperament:"Shy, secretive, slow-moving.",
+   fact:"Iridescent scales reflect rainbow colors in sunlight.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO9cQod6hTBs14EVHdfEmrlG6IymENqyFkOw&s"
+  },
+  {name:"Western Ratsnake",
+   feeding:"Babies: Mice every 5–7 days. Adolescents: Larger mice every 7–10 days. Adults: Rats every 10–14 days.",
+   habitat:"North America; woodlands, vertical climbing spaces, hides.",
+   temperament:"Active, curious, good climber.",
+   fact:"Excellent arboreal skills and strong constrictor.",
+   img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyD7NNsY0FJHFgh6v5vToiZBhMeL4MeIyYZw&s"
+  }
+];
+
+// ---------------- SNAKE SELECTION ----------------
+const grid = document.getElementById('snake-grid');
+let currentSnake = null;
+snakes.sort((a,b)=>a.name.localeCompare(b.name)).forEach((s)=>{
+    const div=document.createElement('div');
+    div.style.textAlign="center"; div.style.cursor="pointer"; div.style.width="150px";
+    div.innerHTML = `<img src="${s.img}" alt="${s.name}" style="width:150px;height:100px;object-fit:cover;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.5)"><p style="margin-top:6px;font-weight:bold;color:#e0e0e0;">${s.name}</p>`;
+    div.onclick = ()=>{
+        document.getElementById('snake-selection').style.display='none';
+        document.getElementById('nav-bar').style.display='flex';
+        showPage('home');
+        currentSnake = s.name;
+        updateHomePage(s.name);
+        highlightSnakeRow(s.name);
+    };
+    grid.appendChild(div);
+});
+
+// ---------------- HOME ----------------
+function updateHomePage(name){
+    const s = snakes.find(x=>x.name===name); if(!s) return;
+    const home = document.getElementById('home');
+    home.querySelector('h1').textContent = `${s.name} Care Portal 🐍`;
+    home.querySelector('img.section-img').src = s.img;
+    document.getElementById('feedingInfo').textContent = s.feeding;
+    document.getElementById('habitatInfo').textContent = s.habitat;
+    document.getElementById('temperamentInfo').textContent = s.temperament;
+    document.getElementById('factInfo').textContent = s.fact;
+}
+
+// ---------------- NAVIGATION ----------------
+function showPage(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    updateBackButton();
+}
+function goToSnakeSelection(){
+    document.getElementById('snake-selection').style.display='block';
+    document.getElementById('nav-bar').style.display='none';
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    updateBackButton();
+}
+function updateBackButton(){
+    const selVisible = document.getElementById('snake-selection').style.display==='block';
+    document.getElementById('backButton').style.display = selVisible ? 'none' : 'block';
+}
+
+// ---------------- FEEDING ----------------
+function updateSizeOptions(){
+    const sizeSelect=document.getElementById('sizeType');
+    const food=document.getElementById('foodType').value;
+    let options=[];
+    switch(food){
+        case "Mouse": options=["Pinkies (0.5-2g)","Velvet (2-4g)","Fuzzies (3-6g)","Hoppers (7-12g)","Weaners (12-18g)","Adults (19-25g)","Xlarge (26g+)"]; break;
+        case "Rat": options=["Pinkies (3-8g)","Velvet (9-14g)","Fuzzies (15-20g)","hoppers (21-30g)","Weaners (31-45g)","Small (46-79)","Medium (80-149g)","Large (150-250g)","XLarge (251-350g)","Jumbo (351g+)"]; break;
+        case "Quail": options=["Day-olds (8-10g)","1-2 week olds (30-80g)","3-4 week old (80-110g)","6+ week old (110-300g)","Jumbo (200-350g+)"]; break;
+        case "Egg": options=["Small (15–20g)","Medium (25–35g)","Large (40–60g)"]; break;
+        case "Rabbit": options=["Extra Small (200g)","small (200-300g)","Medium (300-400g)","Large (400-550g)","X-Large (550-750g)","XX-Large (1kg+)","Jumbo (2kg+)"]; break;
+        case "Toad": options=["Small (5–10g)","Medium (15–25g)","Large (30–50g)"]; break;
+        default: options=["Small (10–20g)","Medium (25–50g)","Large (60–100g)"];
+    }
+    sizeSelect.innerHTML=options.map(o=>`<option>${o}</option>`).join('');
+}
+function addFeed(){
+    const date=document.getElementById('feedDate').value;
+    const type=document.getElementById('foodType').value;
+    const size=document.getElementById('sizeType').value;
+    const status=document.getElementById('feedStatus').value;
+    const notes=document.getElementById('feedNotes').value;
+    if(!date){ alert("Enter date"); return; }
+    const table=document.getElementById('feedTable');
+    const row=table.insertRow();
+    row.innerHTML=`<td>${date}</td><td>${type}</td><td>${size}</td><td>${status}</td><td>${notes}</td>`;
+}
+updateSizeOptions();
+// -------- Feeding Reference Table ---------
+const guideTable = document.getElementById('feedingGuideTable');
+let header = guideTable.insertRow();
+["Snake","Food Type","Frequency"].forEach(t=>{
+    let th = document.createElement('th'); th.textContent=t; header.appendChild(th);
+});
+snakes.forEach(s=>{
+    const r = guideTable.insertRow();
+    r.insertCell(0).textContent=s.name;
+    r.insertCell(1).textContent=s.feeding.split(' every ')[0];
+    r.insertCell(2).textContent=s.feeding.split(' every ')[1]||'';
+});
+
+// Highlight selected snake in feeding table
+function highlightSnakeRow(name){
+    Array.from(guideTable.rows).forEach((row,i)=>{
+        if(i===0) return; // skip header
+        row.classList.remove('highlight');
+        if(row.cells[0].textContent === name){
+            row.classList.add('highlight');
+        }
+    });
+}
+
+
+// ---------------- GROWTH ----------------
+let weightData = {}; // store data per snake
+let chart; // global chart variable
+
+function addWeight(){
+    if(!currentSnake){ alert("Select a snake first"); return; }
+
+    const date = document.getElementById('weightDate').value;
+    const weight = parseFloat(document.getElementById('weightInput').value);
+    const length = parseFloat(document.getElementById('lengthInput').value);
+    if(!date || isNaN(weight) || isNaN(length)){ alert("Enter valid data"); return; }
+
+    if(!weightData[currentSnake]) weightData[currentSnake] = [];
+    weightData[currentSnake].push({date, weight, length});
+
+    updateWeightChart();
+}
+
+function updateWeightChart(){
+    if(!currentSnake || !weightData[currentSnake]) return;
+
+    const data = weightData[currentSnake];
+    const labels = data.map(d => d.date);
+    const weights = data.map(d => d.weight);
+    const lengths = data.map(d => d.length / 100); // convert cm to meters
+
+    const ctx = document.getElementById('weightChart').getContext('2d');
+
+    if(chart) chart.destroy(); // remove old chart
+
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                { 
+                    label: 'Weight (kg)', 
+                    data: weights, 
+                    borderColor: 'rgba(80,200,80,1)', 
+                    backgroundColor: 'rgba(80,200,80,0.2)', 
+                    tension: 0.2,
+                    yAxisID: 'yWeight'
+                },
+                { 
+                    label: 'Length (m)', 
+                    data: lengths, 
+                    borderColor: 'rgba(80,150,250,1)', 
+                    backgroundColor: 'rgba(80,150,250,0.2)', 
+                    tension: 0.2,
+                    yAxisID: 'yLength'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#e0e0e0' } } },
+            scales: {
+                x: { 
+                    ticks: { color: '#e0e0e0' }, 
+                    title: { display: true, text: 'Date', color: '#e0e0e0' } 
+                },
+                yWeight: { 
+                    type: 'linear',
+                    position: 'left',
+                    ticks: { color: '#e0e0e0' },
+                    title: { display: true, text: 'Weight (kg)', color: '#e0e0e0' }
+                },
+                yLength: { 
+                    type: 'linear',
+                    position: 'right',
+                    ticks: { color: '#e0e0e0' },
+                    title: { display: true, text: 'Length (m)', color: '#e0e0e0' },
+                    grid: { drawOnChartArea: false }
+                }
+            }
+        }
+    });
+
+    // Update table
+    const table = document.getElementById('weightTable');
+    table.innerHTML = '<tr><th>Date</th><th>Weight (kg)</th><th>Length (m)</th></tr>';
+    data.forEach(d => {
+        const row = table.insertRow();
+        row.insertCell(0).textContent = d.date;
+        row.insertCell(1).textContent = d.weight;
+        row.insertCell(2).textContent = (d.length / 100).toFixed(2);
+    });
+}
+
+// ---------------- EQUIPMENT ----------------
+let equipmentList=[];
+function addEquip(){
+    const name=document.getElementById('equipInput').value;
+    const cat=document.getElementById('equipCategory').value;
+    const qty=document.getElementById('equipQty').value;
+    const notes=document.getElementById('equipNotes').value;
+    const wish=document.getElementById('equipWishlist').checked ? "Yes":"No";
+    if(!name || !cat){ alert("Enter item and category"); return; }
+    equipmentList.push({name,cat,qty,notes,wish});
+    updateEquipTable();
+    document.getElementById('equipInput').value='';
+    document.getElementById('equipCategory').value='';
+    document.getElementById('equipQty').value=1;
+    document.getElementById('equipNotes').value='';
+    document.getElementById('equipWishlist').checked=false;
+}
+function clearEquip(){ equipmentList=[]; updateEquipTable(); }
+function updateEquipTable(){
+    const table=document.getElementById('equipList');
+    table.innerHTML=`<tr>
+        <th>Item</th><th>Category</th><th>Qty</th><th>Notes</th><th>Wishlist</th><th>Action</th>
+    </tr>`;
+    equipmentList.forEach((e,i)=>{
+        const row=table.insertRow();
+        row.innerHTML=`<td>${e.name}</td><td>${e.cat}</td><td>${e.qty}</td><td>${e.notes}</td><td>${e.wish}</td>
+        <td><button onclick="removeEquip(${i})">Remove</button></td>`;
+    });
+}
+function removeEquip(i){ equipmentList.splice(i,1); updateEquipTable(); }
+
+// ---------------- INIT ----------------
+showPage('home');
+</script>
+</body>
+</html>
