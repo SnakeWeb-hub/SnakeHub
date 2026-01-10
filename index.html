@@ -107,54 +107,6 @@
     #backButton {
         position: fixed; top:20px; left:20px; width:60px; height:60px; cursor:pointer; z-index:1001;
     }
-/* === GLOBAL: NO PAGE SCROLL === */
-html, body {
-    height: 100%;
-    overflow: hidden;
-}
-
-/* === SNAKE SELECTION: AUTO-FIT, NO SCROLL === */
-.snake-selection {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px;
-
-    max-height: 55vh;      /* hard limit so portal fits below */
-    overflow: hidden;      /* no internal scrolling */
-    padding: 12px 16px;
-    margin-bottom: 0;
-}
-
-/* === SNAKE CARD AUTO-SCALING === */
-.snake-card {
-    padding: 10px;
-    margin: 0;
-    text-align: center;
-    aspect-ratio: 1 / 1;   /* keeps cards square */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-/* === IMAGE SCALE CONTROL === */
-.snake-card img {
-    max-height: 70%;
-    width: 100%;
-    object-fit: contain;
-}
-
-/* === TEXT SCALE CONTROL === */
-.snake-card h3,
-.snake-card p {
-    font-size: clamp(0.7rem, 1vw, 0.9rem);
-    margin: 4px 0 0;
-}
-
-/* === PORTAL CONTENT POSITION === */
-#portal-content {
-    margin-top: 0;
-    padding-top: 12px;
-}
 
 </style>
 </head>
@@ -330,6 +282,7 @@ function login() {
     if(!user || !pass){ error.textContent="Enter username and password"; error.style.display="block"; return; }
 
     if(user==='admin' && pass==='noodle123'){ showSnakeSelection(); return; }
+	
 
     const users = JSON.parse(localStorage.getItem('users') || "{}");
     if(users[user] && users[user].password === pass){ showSnakeSelection(); }
@@ -398,8 +351,9 @@ function forgotPassword(){
 function showSnakeSelection(){
     document.getElementById('login-page').style.display='none';
     document.getElementById('snake-selection').style.display='block';
-    document.getElementById('nav-bar').style.display='flex';
+    document.getElementById('nav-bar').style.display='none';
     document.getElementById('logoutBtn').style.display='inline-block';
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     updateBackButton();
 }
 document.getElementById('logoutBtn').onclick = function(){
@@ -741,7 +695,6 @@ function updateEquipTable(){
 function removeEquip(i){ equipmentList.splice(i,1); updateEquipTable(); }
 
 // ---------------- INIT ----------------
-showPage('home');
 </script>
 </body>
 </html>
