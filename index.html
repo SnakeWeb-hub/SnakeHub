@@ -279,14 +279,26 @@ function login() {
     const error = document.getElementById('loginError');
     error.style.display = "none";
 
-    if(!user || !pass){ error.textContent="Enter username and password"; error.style.display="block"; return; }
+    if(!user || !pass){
+        error.textContent = "Enter username and password";
+        error.style.display = "block";
+        return;
+    }
 
-    if(user==='admin' && pass==='noodle123'){ showSnakeSelection(); return; }
-	
+    if(user === 'admin' && pass === 'noodle123'){
+        currentUser = user;
+        showSnakeSelection();
+        return;
+    }
 
     const users = JSON.parse(localStorage.getItem('users') || "{}");
-    if(users[user] && users[user].password === pass){ showSnakeSelection(); }
-    else { error.textContent="Incorrect username or password"; error.style.display="block"; }
+    if(users[user] && users[user].password === pass){
+        currentUser = user;
+        showSnakeSelection();
+    } else {
+        error.textContent = "Incorrect username or password";
+        error.style.display = "block";
+    }
 }
 function showSignUp(){ document.getElementById('signup-form').style.display='block'; }
 function hideSignUp(){ document.getElementById('signup-form').style.display='none'; }
@@ -345,7 +357,7 @@ function forgotPassword(){
     const user = prompt("Enter your username for password recovery:");
     if(!user) return;
     const users = JSON.parse(localStorage.getItem('users') || "{}");
-    if(users[user]) alert("Your password is: " + users[user]);
+    if(users[user]) alert("Your password is: " + users[user].password);
     else alert("Username not found.");
 }
 function showSnakeSelection(){
@@ -574,95 +586,118 @@ function highlightSnakeRow(name){
 }
 
 
-// ---------------- GROWTH ----------------
-let weightData = {}; // store data per snake
+// ---------------- GROWTH CHART ----------------
 let chart; // global chart variable
 
 function addWeight(){
-    if(!currentSnake){ alert("Select a snake first"); return; }
+    if(!currentSnake){ 
+        alert("Select a snake first"); 
+        return; 
+    }
 
     const date = document.getElementById('weightDate').value;
     const weight = parseFloat(document.getElementById('weightInput').value);
     const length = parseFloat(document.getElementById('lengthInput').value);
-    if(!date || isNaN(weight) || isNaN(length)){ alert("Enter valid data"); return; }
 
-    if(!weightData[currentSnake]) weightData[currentSnake] = [];
-    weightData[currentSnake].push({date, weight, length});
+    if(!date || isNaN(weight) || isNaN(length)){
+        alert("Enter valid date, weight, and length");
+        return;
+    }
 
-    updateWeightChart();
+    // Load existing data
+    let userData = loadUserGrowth();
+    if(!userData[currentSnake]) userData[currentSnake] = [];
+    
+    // Add new entry
+    userData[currentSnake].push({date, weight, length});
+    
+    // Sort by date
+    userData[currentSnake].sort((a,b)=>new Date(a.date)-new Date(b.date));
+    
+    // Save
+    saveUserGrowth(userData);
+
+    // Update table and chart
+    updateGrowthTableAndChart();
+    
+    // Clear inputs
+    document.getElementById('weightDate').value = '';
+    document.getElementById('weightInput').value = '';
+    document.getElementById('lengthInput').value = '';
 }
 
-function updateWeightChart(){
-    if(!currentSnake || !weightData[currentSnake]) return;
+// Populate table and chart
+function updateGrowthTableAndChart(){
+    if(!currentSnake) return;
 
-    const data = weightData[currentSnake];
-    const labels = data.map(d => d.date);
-    const weights = data.map(d => d.weight);
-    const lengths = data.map(d => d.length / 100); // convert cm to meters
+    const userData = loadUserGrowth();
+    const entries = userData[currentSnake] || [];
 
+    // Update table
+    const table = document.getElementById('weightTable');
+    table.innerHTML = "<tr><th>Date</th><th>Weight (kg)</th><th>Length (cm)</th></tr>";
+    entries.forEach(e=>{
+        const row = table.insertRow();
+        row.insertCell(0).textContent = e.date;
+        row.insertCell(1).textContent = e.weight.toFixed(2);
+        row.insertCell(2).textContent = e.length.toFixed(1);
+    });
+
+    // Update chart
     const ctx = document.getElementById('weightChart').getContext('2d');
+    const labels = entries.map(e=>e.date);
+    const weights = entries.map(e=>e.weight);
+    const lengths = entries.map(e=>e.length);
 
-    if(chart) chart.destroy(); // remove old chart
+    if(chart) chart.destroy(); // remove previous chart
 
     chart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
-                { 
-                    label: 'Weight (kg)', 
-                    data: weights, 
-                    borderColor: 'rgba(80,200,80,1)', 
-                    backgroundColor: 'rgba(80,200,80,0.2)', 
-                    tension: 0.2,
-                    yAxisID: 'yWeight'
+                {
+                    label: 'Weight (kg)',
+                    data: weights,
+                    borderColor: 'rgba(80,200,80,1)',
+                    backgroundColor: 'rgba(80,200,80,0.3)',
+                    tension: 0.3
                 },
-                { 
-                    label: 'Length (m)', 
-                    data: lengths, 
-                    borderColor: 'rgba(80,150,250,1)', 
-                    backgroundColor: 'rgba(80,150,250,0.2)', 
-                    tension: 0.2,
-                    yAxisID: 'yLength'
+                {
+                    label: 'Length (cm)',
+                    data: lengths,
+                    borderColor: 'rgba(80,150,200,1)',
+                    backgroundColor: 'rgba(80,150,200,0.3)',
+                    tension: 0.3
                 }
             ]
         },
         options: {
             responsive: true,
-            plugins: { legend: { labels: { color: '#e0e0e0' } } },
+            plugins: {
+                legend: { position: 'top', labels: { color:'#e0e0e0' } },
+                title: { display: true, text: `${currentSnake} Growth Chart`, color:'#e0e0e0' }
+            },
             scales: {
-                x: { 
-                    ticks: { color: '#e0e0e0' }, 
-                    title: { display: true, text: 'Date', color: '#e0e0e0' } 
-                },
-                yWeight: { 
-                    type: 'linear',
-                    position: 'left',
-                    ticks: { color: '#e0e0e0' },
-                    title: { display: true, text: 'Weight (kg)', color: '#e0e0e0' }
-                },
-                yLength: { 
-                    type: 'linear',
-                    position: 'right',
-                    ticks: { color: '#e0e0e0' },
-                    title: { display: true, text: 'Length (m)', color: '#e0e0e0' },
-                    grid: { drawOnChartArea: false }
-                }
+                x: { ticks: { color:'#e0e0e0' }, grid: { color:'rgba(255,255,255,0.1)' } },
+                y: { ticks: { color:'#e0e0e0' }, grid: { color:'rgba(255,255,255,0.1)' } }
             }
         }
     });
-
-    // Update table
-    const table = document.getElementById('weightTable');
-    table.innerHTML = '<tr><th>Date</th><th>Weight (kg)</th><th>Length (m)</th></tr>';
-    data.forEach(d => {
-        const row = table.insertRow();
-        row.insertCell(0).textContent = d.date;
-        row.insertCell(1).textContent = d.weight;
-        row.insertCell(2).textContent = (d.length / 100).toFixed(2);
-    });
 }
 
+// Call whenever snake changes
+function onSnakeChangeForGrowth(){
+    if(currentSnake){
+        updateGrowthTableAndChart();
+    }
+}
+
+// Initialize chart when page loads
+document.addEventListener('DOMContentLoaded', ()=>{
+    updateSizeOptions();
+    onSnakeChangeForGrowth();
+});
 // ---------------- EQUIPMENT ----------------
 let equipmentList=[];
 function addEquip(){
